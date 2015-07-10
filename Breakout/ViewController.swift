@@ -14,15 +14,21 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     
     var dynamicAnimator = UIDynamicAnimator()
     var collisionBehavior = UICollisionBehavior()
+    
     var ball = UIView()
     var paddle = UIView()
     var brick = UIView()
     var lives:Int = 5
+    var firstTime = true
     
     var brickArray:[UIView] = []
     var allArray:[UIView] = []
     
     var ballDynamicBehavior:UIDynamicItemBehavior!
+    var paddleDynamicBehavior:UIDynamicItemBehavior!
+    var pushBehavior:UIPushBehavior!
+    var brickDynamicBehavior:UIDynamicItemBehavior!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,7 +61,7 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         ballDynamicBehavior.allowsRotation = false
         dynamicAnimator.addBehavior(ballDynamicBehavior)
         
-        let paddleDynamicBehavior = UIDynamicItemBehavior(items: [paddle])
+        paddleDynamicBehavior = UIDynamicItemBehavior(items: [paddle])
         paddleDynamicBehavior.density = 1000
         paddleDynamicBehavior.resistance = 100
         paddleDynamicBehavior.allowsRotation = false
@@ -64,18 +70,18 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         allArray.append(ball)
         allArray.append(paddle)
         
-        let pushBehavior = UIPushBehavior(items: [ball], mode: UIPushBehaviorMode.Instantaneous)
+        pushBehavior = UIPushBehavior(items: [ball], mode: UIPushBehaviorMode.Instantaneous)
         pushBehavior.pushDirection = CGVectorMake(0.2, 1.0)
         pushBehavior.magnitude = 0.25
         dynamicAnimator.addBehavior(pushBehavior)
         
-        let collisionBehavior = UICollisionBehavior(items: allArray)
+        collisionBehavior = UICollisionBehavior(items: allArray)
         collisionBehavior.translatesReferenceBoundsIntoBoundary = true
         collisionBehavior.collisionMode = .Everything
         collisionBehavior.collisionDelegate = self
         dynamicAnimator.addBehavior(collisionBehavior)
         
-        let brickDynamicBehavior = UIDynamicItemBehavior(items: brickArray)
+        brickDynamicBehavior = UIDynamicItemBehavior(items: brickArray)
         brickDynamicBehavior.density = 10000
         brickDynamicBehavior.resistance = 100
         brickDynamicBehavior.allowsRotation = false
@@ -105,6 +111,8 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
                 dynamicAnimator.updateItemUsingCurrentState(ball)
             }
             else{
+                ball.center = CGPointMake(100000, -10000)
+                paddle.center = CGPointMake(-10000, -100000)
                 ball.removeFromSuperview()
                 dynamicAnimator.removeBehavior(ballDynamicBehavior)
                 let alert = UIAlertController(title: "Game Over", message: "You ran out of lives!", preferredStyle: UIAlertControllerStyle.Alert)
@@ -138,6 +146,8 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
                     dynamicAnimator.updateItemUsingCurrentState(ball)
                     brickArray.removeAtIndex(i)
                     if(brickArray.count == 0){
+                        ball.center = CGPointMake(100000, -10000)
+                        paddle.center = CGPointMake(-10000, -100000)
                         dynamicAnimator.removeBehavior(ballDynamicBehavior)
                         ball.removeFromSuperview()
                         let alert = UIAlertController(title: "You win!", message: "You won the game!", preferredStyle: UIAlertControllerStyle.Alert)
@@ -171,14 +181,16 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
                     brick.backgroundColor = UIColor.greenColor()
                 }
                 brickArray.append(brick)
-                allArray.append(brick)
+                if(firstTime){
+                    allArray.append(brick)
+                }
                 view.addSubview(brick)
             }
             type++
         }
     }
     
-    func resetBoard(){
+    /*func resetBoard(){
         dynamicAnimator.removeBehavior(ballDynamicBehavior)
         
         lives = 5
@@ -205,7 +217,80 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         pushBehavior.magnitude = 0.25
         dynamicAnimator.addBehavior(pushBehavior)
         
+    }*/
+    
+    func resetBoard(){
+        lives = 5
+        
+        for box in brickArray{
+            box.center = CGPointMake(-100101, 42342)
+            box.removeFromSuperview()
+        }
+        
+        for box in allArray{
+            box.center = CGPointMake(-100101, 42342)
+            box.removeFromSuperview()
+        }
+        
+        brickArray.removeAll()
+        
+        allArray.removeAll()
+        
+        ball = UIView(frame: CGRectMake(view.center.x, view.center.y, 20, 20))
+        ball.backgroundColor = UIColor.blackColor()
+        ball.layer.cornerRadius = 10
+        ball.clipsToBounds = true
+        view.addSubview(ball)
+        
+        paddle = UIView(frame: CGRectMake(view.center.x, view.center.y*1.7, 80, 20))
+        paddle.backgroundColor = UIColor.redColor()
+        view.addSubview(paddle)
+        
+        /*brick = UIView(frame: CGRectMake(20, 20, 40, 20))
+        brick.backgroundColor = UIColor.blueColor()
+        view.addSubview(brick)*/
+        
+        
+        setupBricks()
+        
+        dynamicAnimator = UIDynamicAnimator(referenceView: view)
+        
+        ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
+        ballDynamicBehavior.friction = 0
+        ballDynamicBehavior.resistance = 0
+        ballDynamicBehavior.elasticity = 1.0
+        ballDynamicBehavior.allowsRotation = false
+        dynamicAnimator.addBehavior(ballDynamicBehavior)
+        
+        paddleDynamicBehavior = UIDynamicItemBehavior(items: [paddle])
+        paddleDynamicBehavior.density = 1000
+        paddleDynamicBehavior.resistance = 100
+        paddleDynamicBehavior.allowsRotation = false
+        dynamicAnimator.addBehavior(paddleDynamicBehavior)
+        
+        allArray.append(ball)
+        allArray.append(paddle)
+        
+        pushBehavior = UIPushBehavior(items: [ball], mode: UIPushBehaviorMode.Instantaneous)
+        pushBehavior.pushDirection = CGVectorMake(0.2, 1.0)
+        pushBehavior.magnitude = 0.25
+        dynamicAnimator.addBehavior(pushBehavior)
+        
+        collisionBehavior = UICollisionBehavior(items: allArray)
+        collisionBehavior.translatesReferenceBoundsIntoBoundary = true
+        collisionBehavior.collisionMode = .Everything
+        collisionBehavior.collisionDelegate = self
+        dynamicAnimator.addBehavior(collisionBehavior)
+        
+        brickDynamicBehavior = UIDynamicItemBehavior(items: brickArray)
+        brickDynamicBehavior.density = 10000
+        brickDynamicBehavior.resistance = 100
+        brickDynamicBehavior.allowsRotation = false
+        dynamicAnimator.addBehavior(brickDynamicBehavior)
+        
+        
+        livesLabel.text = "Lives: " + String(lives)
     }
     
-
+    
 }
