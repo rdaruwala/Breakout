@@ -22,6 +22,8 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     var brickArray:[UIView] = []
     var allArray:[UIView] = []
     
+    var ballDynamicBehavior:UIDynamicItemBehavior!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -46,7 +48,7 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         
         dynamicAnimator = UIDynamicAnimator(referenceView: view)
         
-        let ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
+        ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
         ballDynamicBehavior.friction = 0
         ballDynamicBehavior.resistance = 0
         ballDynamicBehavior.elasticity = 1.0
@@ -104,10 +106,11 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
             }
             else{
                 ball.removeFromSuperview()
+                dynamicAnimator.removeBehavior(ballDynamicBehavior)
                 let alert = UIAlertController(title: "Game Over", message: "You ran out of lives!", preferredStyle: UIAlertControllerStyle.Alert)
                 alert.addAction(UIAlertAction(title: "Play Again", style: UIAlertActionStyle.Default, handler: {void in
                     self.dynamicAnimator.removeAllBehaviors()
-                    self.viewDidLoad()
+                    self.resetBoard()
                 }))
                 
                 self.presentViewController(alert, animated: true, completion: nil)
@@ -116,31 +119,46 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     }
     
     func collisionBehavior(behavior: UICollisionBehavior, beganContactForItem item1: UIDynamicItem, withItem item2: UIDynamicItem, atPoint p: CGPoint) {
-        for brick in brickArray{
-        if((item1.isEqual(ball) && item2.isEqual(brick)) || (item1.isEqual(brick) && item2.isEqual(ball))){
-            if(brick.backgroundColor == UIColor.blueColor()){
-                brick.backgroundColor = UIColor.orangeColor()
-            }
-            else if(brick.backgroundColor == UIColor.orangeColor()){
-                brick.backgroundColor = UIColor.greenColor()
-            }
-            else if(brick.backgroundColor == UIColor.greenColor()){
-                //brick.hidden = true
-                collisionBehavior.removeItem(brick)
-                //livesLabl.text = "win"
-                //ball.removeFromSuperview()
-                dynamicAnimator.updateItemUsingCurrentState(ball)
+        for(var i = 0; i < brickArray.count; i++){
+            if((item1.isEqual(ball) && item2.isEqual(brickArray[i])) || (item1.isEqual(brickArray[i]) && item2.isEqual(ball))){
+                if(brickArray[i].backgroundColor == UIColor.blueColor()){
+                    brickArray[i].backgroundColor = UIColor.orangeColor()
+                }
+                else if(brickArray[i].backgroundColor == UIColor.orangeColor()){
+                    brickArray[i].backgroundColor = UIColor.greenColor()
+                }
+                else if(brickArray[i].backgroundColor == UIColor.greenColor()){
+                    brickArray[i].center = CGPointMake(-100000, -100000)
+                    brickArray[i].hidden = true
+                    collisionBehavior.removeItem(brickArray[i])
+                    dynamicAnimator.updateItemUsingCurrentState(brickArray[i])
+                    brickArray[i].removeFromSuperview()
+                    //livesLabl.text = "win"
+                    //ball.removeFromSuperview()
+                    dynamicAnimator.updateItemUsingCurrentState(ball)
+                    brickArray.removeAtIndex(i)
+                    if(brickArray.count == 0){
+                        dynamicAnimator.removeBehavior(ballDynamicBehavior)
+                        ball.removeFromSuperview()
+                        let alert = UIAlertController(title: "You win!", message: "You won the game!", preferredStyle: UIAlertControllerStyle.Alert)
+                        alert.addAction(UIAlertAction(title: "Play Again", style: UIAlertActionStyle.Default, handler: {void in
+                            self.dynamicAnimator.removeAllBehaviors()
+                            self.resetBoard()
+                        }))
+                        
+                        self.presentViewController(alert, animated: true, completion: nil)
+                    }
+                }
             }
         }
-    }
-    
+        
     }
     
     func setupBricks(){
         var type:Int = 1
         for(var i = 4; i > 0; i--){
             for(var j = 1; j <= 9; j++){
-                let xCoord:CGFloat = CGFloat(42*j)
+                let xCoord:CGFloat = CGFloat(42*(j-1))
                 let yCoord:CGFloat = CGFloat(25*type)
                 brick = UIView(frame: CGRectMake(xCoord, yCoord, 40, 20))
                 if(type == 1){
@@ -159,5 +177,35 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
             type++
         }
     }
-}
+    
+    func resetBoard(){
+        dynamicAnimator.removeBehavior(ballDynamicBehavior)
+        
+        lives = 5
+        livesLabel.text = "Lives: " + String(lives)
+        setupBricks()
+        
+        ball = UIView(frame: CGRectMake(view.center.x, view.center.y, 20, 20))
+        ball.backgroundColor = UIColor.blackColor()
+        ball.layer.cornerRadius = 10
+        ball.clipsToBounds = true
+        view.addSubview(ball)
+        
+        paddle.center = CGPointMake(view.center.x, view.center.y*1.7)
+        
+        ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
+        ballDynamicBehavior.friction = 0
+        ballDynamicBehavior.resistance = 0
+        ballDynamicBehavior.elasticity = 1.0
+        ballDynamicBehavior.allowsRotation = false
+        dynamicAnimator.addBehavior(ballDynamicBehavior)
+        
+        let pushBehavior = UIPushBehavior(items: [ball], mode: UIPushBehaviorMode.Instantaneous)
+        pushBehavior.pushDirection = CGVectorMake(0.2, 1.0)
+        pushBehavior.magnitude = 0.25
+        dynamicAnimator.addBehavior(pushBehavior)
+        
+    }
+    
 
+}
