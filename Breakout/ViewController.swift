@@ -30,6 +30,9 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     var brickDynamicBehavior:UIDynamicItemBehavior!
     
     
+    /**
+    Loads a game with five lives. Creates objects and adds them to a Dynamic Animator.
+    **/
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -44,11 +47,6 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         paddle = UIView(frame: CGRectMake(view.center.x, view.center.y*1.7, 80, 20))
         paddle.backgroundColor = UIColor.redColor()
         view.addSubview(paddle)
-        
-        /*brick = UIView(frame: CGRectMake(20, 20, 40, 20))
-        brick.backgroundColor = UIColor.blueColor()
-        view.addSubview(brick)*/
-        
         
         setupBricks()
         
@@ -95,6 +93,10 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    /**
+    Action function to move the paddle
+    **/
     @IBAction func onPanGestureAction(sender: AnyObject) {
         let panGesture = sender.locationInView(view)
         paddle.center = CGPointMake(panGesture.x, paddle.center.y)
@@ -102,6 +104,9 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     }
     
     
+    /**
+    Checks if the ball has gone under the paddle. If it has, remove a life. If lives is equal to zero, set the paddle and ball to hidden (Set to hidden, remove from the view, and move it far off the screen) and display the lose-game alert.
+    **/
     func collisionBehavior(behavior: UICollisionBehavior, beganContactForItem item: UIDynamicItem, withBoundaryIdentifier identifier: NSCopying?, atPoint p: CGPoint) {
         if(item.isEqual(ball) && p.y > paddle.center.y){
             lives--
@@ -126,6 +131,9 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         }
     }
     
+    /**
+    Checks collisions between the ball and a given block. If the block is blue, set it to orange. If orange, set it to green. If green, remove the block (Set to hidden, remove from the view, and move it far off the screen) and then remove it from the brickArray. If brickArray checks to be empty, then display the win-game alert
+    **/
     func collisionBehavior(behavior: UICollisionBehavior, beganContactForItem item1: UIDynamicItem, withItem item2: UIDynamicItem, atPoint p: CGPoint) {
         for(var i = 0; i < brickArray.count; i++){
             if((item1.isEqual(ball) && item2.isEqual(brickArray[i])) || (item1.isEqual(brickArray[i]) && item2.isEqual(ball))){
@@ -164,6 +172,9 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         
     }
     
+    /**
+    Sets up the rows of bricks and adds them into two arrays, one containing all the bricks and the other containing every item used.
+    **/
     func setupBricks(){
         var type:Int = 1
         for(var i = 4; i > 0; i--){
@@ -190,35 +201,9 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         }
     }
     
-    /*func resetBoard(){
-        dynamicAnimator.removeBehavior(ballDynamicBehavior)
-        
-        lives = 5
-        livesLabel.text = "Lives: " + String(lives)
-        setupBricks()
-        
-        ball = UIView(frame: CGRectMake(view.center.x, view.center.y, 20, 20))
-        ball.backgroundColor = UIColor.blackColor()
-        ball.layer.cornerRadius = 10
-        ball.clipsToBounds = true
-        view.addSubview(ball)
-        
-        paddle.center = CGPointMake(view.center.x, view.center.y*1.7)
-        
-        ballDynamicBehavior = UIDynamicItemBehavior(items: [ball])
-        ballDynamicBehavior.friction = 0
-        ballDynamicBehavior.resistance = 0
-        ballDynamicBehavior.elasticity = 1.0
-        ballDynamicBehavior.allowsRotation = false
-        dynamicAnimator.addBehavior(ballDynamicBehavior)
-        
-        let pushBehavior = UIPushBehavior(items: [ball], mode: UIPushBehaviorMode.Instantaneous)
-        pushBehavior.pushDirection = CGVectorMake(0.2, 1.0)
-        pushBehavior.magnitude = 0.25
-        dynamicAnimator.addBehavior(pushBehavior)
-        
-    }*/
-    
+    /**
+    Resets the game and then loads it with five lives. Creates objects and adds them to a Dynamic Animator.
+    **/
     func resetBoard(){
         lives = 5
         
@@ -245,11 +230,6 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         paddle = UIView(frame: CGRectMake(view.center.x, view.center.y*1.7, 80, 20))
         paddle.backgroundColor = UIColor.redColor()
         view.addSubview(paddle)
-        
-        /*brick = UIView(frame: CGRectMake(20, 20, 40, 20))
-        brick.backgroundColor = UIColor.blueColor()
-        view.addSubview(brick)*/
-        
         
         setupBricks()
         
